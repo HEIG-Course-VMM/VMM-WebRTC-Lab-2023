@@ -41,6 +41,10 @@ async function enable_camera() {
     'video': true,
     'audio': true};
 
+    const displayMediaOptions = {video: {
+      cursor: 'always',
+      displaySurface: 'window'}};
+
   let stream;
 
 
@@ -54,7 +58,13 @@ async function enable_camera() {
       console.log('Got MediaStream:', stream);
     } catch(error) {
       console.error('Error accessing media devices.', error);
+
+      try {
+        stream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
+      } catch (err) {
+        console.error(`Error: ${err}`);
     }
+  }
 
 
   document.getElementById('localVideo').srcObject = stream;
