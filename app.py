@@ -100,9 +100,13 @@ def handle_ice_candidate(content) :
 @socketio.on('bye')
 def handle_bye(room_name):
     # *** TODO ***: Get the user_id from the request variable
+    user_id = request.id
     # *** TODO ***: Use leave_room to remove the sender from the SocketIO room
+    leave_room(rooms_db[user_id])
     # *** TODO ***: Forward the 'bye' message using p2p_message
+    handle_p2pmessage("bye", {"room_name": room_name})
     # *** TODO ***: Remove the user from rooms_db
+    rooms_db.pop(user_id)
     pass
 
 
