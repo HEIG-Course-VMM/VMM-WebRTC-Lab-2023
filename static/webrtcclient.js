@@ -15,6 +15,7 @@ let socket; // Socket.io connection to the Web server for signaling.
 // --------------------------------------------------------------------------
 // Function call, when call button is clicked.
 async function call() {
+  console.log("entry call...");
   // Enable local video stream from camera or screen sharing
   const localStream = await enable_camera();
 
@@ -35,13 +36,26 @@ async function call() {
 // Then show it on localVideo.
 async function enable_camera() {
 
-  // *** TODO ***: define constraints: set video to true, audio to true
-  
-  // *** TODO ***: uncomment the following log message
+  // define constraints: set video to true, audio to true
+  const constraints = {
+    'video': true,
+    'audio': true};
+
+  let stream;
+
+
   console.log('Getting user media with constraints', constraints);
 
   // *** TODO ***: use getUserMedia to get a local media stream from the camera.
   //               If this fails, use getDisplayMedia to get a screen sharing stream.
+
+  try {
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log('Got MediaStream:', stream);
+    } catch(error) {
+      console.error('Error accessing media devices.', error);
+    }
+
 
   document.getElementById('localVideo').srcObject = stream;
   return stream;
