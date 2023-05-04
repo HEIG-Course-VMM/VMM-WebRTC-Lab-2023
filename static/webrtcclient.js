@@ -106,8 +106,8 @@ function add_signaling_handlers(socket) {
   // ice_candidate --> handle_remote_icecandidate
   // bye --> hangUp
 
-  socket.on('new_peer', (peerConnection) => {
-    handle_new_peer(peerConnection);
+  socket.on('new_peer', (room) => {
+    handle_new_peer(room);
   });
 
   socket.on('invite', (offer) => {
@@ -191,6 +191,7 @@ function add_peerconnection_handlers(peerConnection) {
 // Handle new peer: another peer has joined the room. I am the Caller.
 // Create SDP offer and send it to peer via the server.
 async function handle_new_peer(room){
+  console.log(`CALLED NOW ${room}`)
   console.log('Peer has joined room: ' + room + '. I am the Caller.');
   create_datachannel(peerConnection); // MUST BE CALLED BEFORE createOffer
 
@@ -263,9 +264,6 @@ async function handle_remote_icecandidate(candidate) {
 function handle_remote_track(event) {
   console.log('Received remote track: ', event);
   // *** TODO ***: get the first stream of the event and show it in remoteVideo
-  event.streams[0].getTracks().forEach(track => {
-    remoteVideo.addTrack(track)
-  })
   document.getElementById('remoteVideo').srcObject = event.streams[0]
 }
 

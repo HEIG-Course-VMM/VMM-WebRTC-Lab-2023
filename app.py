@@ -62,7 +62,7 @@ def handle_join(room_name):
         # *** TODO ***: Emit a 'joined' message back to the client, with the room_name as data.
         emit('joined', room_name)
         # *** TODO ***: Broadcast to existing client that there is a new peer
-        emit('new_peer', room=room_name, broadcast=True, include_self=False)
+        emit('new_peer', room_name, room=room_name, broadcast=True, include_self=False)
 
     else:
         print(f'Refusing join from user: {user_id} for FULL room: {room_name}.')
@@ -83,15 +83,17 @@ def handle_p2pmessage(msg_type, content):
 
 
 # *** TODO ***: Create a message handler for 'invite' messages
+@socketio.on('invite')
 def handle_invite(offer):
     handle_p2pmessage('invite', offer)
 # *** TODO ***: Create a message handler for 'ok' messages
+@socketio.on('ok')
 def handle_ok(answer):
     handle_p2pmessage('ok', answer)
 # *** TODO ***: Create a message handler for 'ice_candidate' messages
+@socketio.on('ice_candidate')
 def handle_ice_candidate(candidate):
     handle_p2pmessage('ice_candidate', candidate)
-
 
 @socketio.on('bye')
 def handle_bye(room_name):
