@@ -92,19 +92,19 @@ function add_signaling_handlers(socket) {
   // ice_candidate --> handle_remote_icecandidate
   // bye --> hangUp
   socket.on('new_peer', (room) => {
-    console.log("full");
+    handle_new_peer(room);
   });
   socket.on('invite', (sdpOffer) => {
-    console.log("full");
+    handle_invite(sdpOffer);
   });
   socket.on('ok', (sdpOffer) => {
-    console.log("full");
+    handle_ok(sdpOffer);
   });
   socket.on('ice_candidate', (iceCandidate) => {
-    console.log("full");
+    handle_remote_icecandidate(iceCandidate);
   });
   socket.on('bye', (room) => {
-    console.log("full");
+    hangUp(room);
   });
 }
 
@@ -114,7 +114,7 @@ function call_room(socket) {
   room = prompt("Enter room name:");
   if (room != "") {
     console.log("Joining room: " + room);
-    // *** TODO ***: send a join message to the server with room as argument.
+    socket.emit("join", room);
   }
 }
 
@@ -130,10 +130,10 @@ function create_peerconnection(localStream) {
   };
 
   // *** TODO ***: create a new RTCPeerConnection with this configuration
-  // const pc = ...
+  const pc = new RTCPeerConnection(pcConfiguration);
 
   // *** TODO ***: add all tracks of the local stream to the peerConnection
-
+  localStream.getTracks().forEach(track => pc.addTrack(track, stream))
   return pc;
 }
 
@@ -142,9 +142,19 @@ function create_peerconnection(localStream) {
 // This function is called by the call function all on top of the file.
 function add_peerconnection_handlers(peerConnection) {
   // *** TODO ***: add event handlers on the peerConnection
+
   // onicecandidate -> handle_local_icecandidate
+  socket.on('onicecandidate', (event) => {
+    handle_local_icecandidate(event);
+  });
   // ontrack -> handle_remote_track
+  socket.on('ontrack', (event) => {
+    handle_remote_track(event);
+  });
   // ondatachannel -> handle_remote_datachannel
+  socket.on('ondatachannel', (event) => {
+    handle_remote_ondatachannel(event);
+  });
 }
 
 // ==========================================================================
