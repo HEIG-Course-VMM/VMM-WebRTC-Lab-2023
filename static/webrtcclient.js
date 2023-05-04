@@ -36,12 +36,29 @@ async function call() {
 async function enable_camera() {
 
   // *** TODO ***: define constraints: set video to true, audio to true
+  const constraints = {
+    video: true,
+    audio: {
+      echoCancellation: true,
+      noiseSuppression: true,
+      channelCount: 2
+    }
+  };
   
   // *** TODO ***: uncomment the following log message
   console.log('Getting user media with constraints', constraints);
 
   // *** TODO ***: use getUserMedia to get a local media stream from the camera.
   //               If this fails, use getDisplayMedia to get a screen sharing stream.
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia(constraints);
+    console.log('Got MediaStream:', stream);
+  } catch(error) {
+    alert('Error accessing media devices. Falling back to screen sharing.');
+    console.error('Error accessing media devices.', error);
+    stream = await navigator.mediaDevices.getDisplayMedia(constraints);
+  }
 
   document.getElementById('localVideo').srcObject = stream;
   return stream;
@@ -56,8 +73,7 @@ async function enable_camera() {
 function create_signaling_connection() {
   // *** TODO ***: create a socket by simply calling the io() function
   //               provided by the socket.io library (included in index.html).
-  //  const socket = ...
-  return socket;
+  return io();
 }
 
 // --------------------------------------------------------------------------
@@ -68,6 +84,17 @@ function add_signaling_handlers(socket) {
   // *** TODO ***: use the 'socket.on' method to create handlers for the 
   //               messages 'created', 'joined', 'full'.
   //               For all three messages, simply write a console log.
+  socket.on('created', () => {
+    console.log('Created room');
+  });
+
+  socket.on('joined', () => {
+    console.log('This peer has joined');
+  });
+
+  socket.on('full', () => {
+    console.log('Room is full');
+  });
 
 
   // Event handlers for call establishment signaling messages
@@ -79,6 +106,26 @@ function add_signaling_handlers(socket) {
   // ice_candidate --> handle_remote_icecandidate
   // bye --> hangUp
 
+  socket.on('new_peer', (peerConnection) => {
+    handle_new_peer(peerConnection);
+  });
+
+  socket.on('invite', (offer) => {
+    handle_invite(offer);
+  });
+
+  socket.on('ok', (answer) => {
+    handle_ok(answer);
+  });
+
+  socket.on('ice_candidate', (candidate) => {
+    handle_remote_icecandidate(candidate);
+  });
+
+  socket.on('bye', () => {
+    hangUp();
+  });
+
 }
 
 // --------------------------------------------------------------------------
@@ -88,7 +135,7 @@ function call_room(socket) {
   if (room != '') {
       console.log('Joining room: ' + room);
       // *** TODO ***: send a join message to the server with room as argument.
-
+      socket.emit('join', room);
   }
 }
 
@@ -103,8 +150,12 @@ function create_peerconnection(localStream) {
 
   // *** TODO ***: create a new RTCPeerConnection with this configuration
   // const pc = ...
+  const pc = new RTCPeerConnection(pcConfiguration);
 
   // *** TODO ***: add all tracks of the local stream to the peerConnection
+  localStream.getTracks().forEach(track => {
+    pc.addTrack(track, localStream);
+  });
 
   return pc;
 }
@@ -118,6 +169,18 @@ function add_peerconnection_handlers(peerConnection) {
   // onicecandidate -> handle_local_icecandidate
   // ontrack -> handle_remote_track
   // ondatachannel -> handle_remote_datachannel
+
+  peerConnection.onicecandidate = (event) => {
+    handle_local_icecandidate(event);
+  }
+
+  peerConnection.ontrack = (event) => {
+    handle_remote_track(event);
+  }
+
+  peerConnection.ondatachannel = (event) => {
+    handle_remote_datachannel(event);
+  }
 }
 
 // ==========================================================================
