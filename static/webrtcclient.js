@@ -272,10 +272,17 @@ function create_datachannel(peerConnection) {
 
   // *** TODO ***: create a dataChannel on the peerConnection
   //dataChannel = ...
+  dataChannel = peerConnection.createDataChannel('dataChannel');
 
   // *** TODO ***: connect the handlers onopen and onmessage to the handlers below
   //dataChannel. ...
+  dataChannel.onopen = (event) => {
+    handle_datachannel_open(event);
+  };
 
+  dataChannel.onmessage = (event) => {
+    handle_datachannel_message(event);
+  };
 }
 
 // --------------------------------------------------------------------------
@@ -284,9 +291,16 @@ function handle_remote_datachannel(event) {
   console.log('Received remote dataChannel. I am Callee.');
 
   // *** TODO ***: get the data channel from the event
+  dataChannel = event.channel;
 
   // *** TODO ***: add event handlers for onopen and onmessage events to the dataChannel
+  dataChannel.onopen = (event) => {
+    handle_datachannel_open(event);
+  }
 
+  dataChannel.onmessage = (event) => {
+    handle_datachannel_message(event);
+  }
 }
 
 // --------------------------------------------------------------------------
@@ -304,7 +318,7 @@ function sendMessage() {
   document.getElementById('dataChannelOutput').value += '        ME: ' + message + '\n';
 
   // *** TODO ***: send the message through the dataChannel
-
+  dataChannel.send(message);
 }
 
 // Handle Message from peer event on dataChannel: display the message
