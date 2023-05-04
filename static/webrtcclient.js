@@ -195,9 +195,9 @@ async function handle_new_peer(room){
   create_datachannel(peerConnection); // MUST BE CALLED BEFORE createOffer
 
   // *** TODO ***: use createOffer (with await) generate an SDP offer for peerConnection
-  const offer = await pc.createOffer()
+  const offer = await peerConnection.createOffer()
   // *** TODO ***: use setLocalDescription (with await) to add the offer to peerConnection
-  await pc.setLocalDescription(offer)
+  await peerConnection.setLocalDescription(offer)
   // *** TODO ***: send an 'invite' message with the offer to the peer.
   socket.emit('invite', offer); 
 }
@@ -208,11 +208,11 @@ async function handle_new_peer(room){
 async function handle_invite(offer) {
   console.log('Received Invite offer from Caller: ', offer);
   // *** TODO ***: use setRemoteDescription (with await) to add the offer SDP to peerConnection 
-  await pc.setRemoteDescription(offer)
+  await peerConnection.setRemoteDescription(offer)
   // *** TODO ***: use createAnswer (with await) to generate an answer SDP
-  const answer = await pc.createAnswer()
+  const answer = await peerConnection.createAnswer()
   // *** TODO ***: use setLocalDescription (with await) to add the answer SDP to peerConnection
-  await pc.setLocalDescription(answer)
+  await peerConnection.setLocalDescription(answer)
   // *** TODO ***: send an 'ok' message with the answer to the peer.
   socket.emit('ok', answer); 
 }
@@ -224,7 +224,7 @@ async function handle_ok(answer) {
   console.log('Received OK answer from Callee: ', answer);
   // *** TODO ***: use setRemoteDescription (with await) to add the answer SDP 
   //               the peerConnection
-  await pc.setRemoteDescription(answer)
+  await peerConnection.setRemoteDescription(answer)
 }
 
 // ==========================================================================
@@ -250,7 +250,7 @@ async function handle_local_icecandidate(event) {
 async function handle_remote_icecandidate(candidate) {
   console.log('Received remote ICE candidate: ', candidate);
   // *** TODO ***: add the received remote ICE candidate to the peerConnection 
-  pc.addIceCandidate(candidate)
+  peerConnection.addIceCandidate(candidate)
 }
 
 // ==========================================================================
@@ -363,8 +363,8 @@ function hangUp() {
   remoteVideo.srcObject = null
 
   // *** TODO ***: close the peerConnection and set it to null
-  pc.close()
-  pc = null
+  peerConnection.close()
+  peerConnection = null
 
   // *** TODO ***: close the dataChannel and set it to null
   dataChannel.close()
