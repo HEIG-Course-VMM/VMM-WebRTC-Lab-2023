@@ -92,13 +92,13 @@ function add_signaling_handlers(socket) {
   // *** TODO ***: use the 'socket.on' method to create handlers for the 
   //               messages 'created', 'joined', 'full'.
   //               For all three messages, simply write a console log.
-  socket.on('created', (data) => {
+  socket.on('created', () => {
     console.log('created');
   });
-  socket.on('joined', (data) => {
+  socket.on('joined', () => {
     console.log('joined');
   });
-  socket.on('full', (data) => {
+  socket.on('full', () => {
     console.log('full');
   });
 
