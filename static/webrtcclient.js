@@ -50,7 +50,7 @@ async function enable_camera() {
 
   console.log('Getting user media with constraints', constraints);
 
-  // *** TODO ***: use getUserMedia to get a local media stream from the camera.
+  // use getUserMedia to get a local media stream from the camera.
   //               If this fails, use getDisplayMedia to get a screen sharing stream.
 
   try {
@@ -80,7 +80,7 @@ async function enable_camera() {
 function create_signaling_connection() {
   // *** TODO ***: create a socket by simply calling the io() function
   //               provided by the socket.io library (included in index.html).
-  //  const socket = ...
+  const socket = io();
   return socket;
 }
 
@@ -92,6 +92,35 @@ function add_signaling_handlers(socket) {
   // *** TODO ***: use the 'socket.on' method to create handlers for the 
   //               messages 'created', 'joined', 'full'.
   //               For all three messages, simply write a console log.
+  socket.on('created', (data) => {
+    console.log('created');
+  });
+  socket.on('joined', (data) => {
+    console.log('joined');
+  });
+  socket.on('full', (data) => {
+    console.log('full');
+  });
+
+  socket.on('new_peer', (room) => {
+    handle_new_peer(room);
+  });
+
+  socket.on('invite', (offer) => {
+    handle_invite(offer);
+  });
+
+  socket.on('ok', (answer) => {
+    handle_ok(answer);
+  });
+
+  socket.on('ice_candidate', (candidate) => {
+    handle_remote_icecandidate(candidate);
+  });
+
+  socket.on('ice_candidate', () => {
+    hangUp();
+  });
 
 
   // Event handlers for call establishment signaling messages
