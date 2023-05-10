@@ -35,19 +35,17 @@ async function call() {
 // Then show it on localVideo.
 async function enable_camera() {
 
-  // *** TODO ***: define constraints: set video to true, audio to true (audio set to false to avoid feedback loops)
+  //defines constraints: set video to true, audio to true (audio set to false to avoid feedback loops)
   const constraints = { video: true, audio: false };
 
   let stream;
 
-  
-  // *** TODO ***: uncomment the following log message
   console.log('Getting user media with constraints', constraints);
-
-  // *** TODO ***: use getUserMedia to get a local media stream from the camera.
-  //               If this fails, use getDisplayMedia to get a screen sharing stream.
+  
+  // uses getUserMedia to get a local media stream from the camera.
+  // If this fails, use getDisplayMedia to get a screen sharing stream.
   try{
-    stream = await navigator.mediaDevices.getDisplayMedia(constraints);
+    stream = await navigator.mediaDevices.getUserMedia(constraints);
     console.log('got userMediaStream: ', stream);
   }catch(error){
     console.error('Error while accessing media devices: ', error);
@@ -64,9 +62,9 @@ async function enable_camera() {
 // --------------------------------------------------------------------------
 // Create a Socket.io connection with the Web server for signaling
 function create_signaling_connection() {
-  // *** TODO ***: create a socket by simply calling the io() function
-  //               provided by the socket.io library (included in index.html).
-  //  const socket = ...
+  // creates a socket by simply calling the io() function
+  // provided by the socket.io library (included in index.html).
+  const socket = io();
   return socket;
 }
 
@@ -75,19 +73,27 @@ function create_signaling_connection() {
 function add_signaling_handlers(socket) {
   // Event handlers for joining a room. Just print console messages
   // --------------------------------------------------------------
-  // *** TODO ***: use the 'socket.on' method to create handlers for the 
   //               messages 'created', 'joined', 'full'.
   //               For all three messages, simply write a console log.
 
+  socket.on('created', (room) => {console.log("The room: " + room + " has been created.");});
+  socket.on('joined', (room) => {console.log("A new peer has joined the room: " + room + ".")});
+  socket.on('full', (room) => {console.log("The room: " + room + " is full.")});
 
   // Event handlers for call establishment signaling messages
   // --------------------------------------------------------
-  // *** TODO ***: use the 'socket.on' method to create signaling message handlers:
   // new_peer --> handle_new_peer
   // invite --> handle_invite
   // ok --> handle_ok
   // ice_candidate --> handle_remote_icecandidate
   // bye --> hangUp
+
+  socket.on('new_peer', (room) => {handle_new_peer(room)});
+  socket.on('invite', (offer) => {handle_invite(offer)});
+  socket.on('ok', (answer) => {handle_ok(answer)});  // *** TODO ***: use the 'socket.on' method to create signaling message handlers:
+  socket.on('ice_candidate', (candidate) => {handle_remote_icecandidate(candidate)});
+  socket.on('bye', () => {hangUp()});
+
 
 }
 
@@ -98,6 +104,7 @@ function call_room(socket) {
   if (room != '') {
       console.log('Joining room: ' + room);
       // *** TODO ***: send a join message to the server with room as argument.
+      socket.emit('join', room);
 
   }
 }
@@ -112,9 +119,12 @@ function create_peerconnection(localStream) {
   const pcConfiguration = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]}
 
   // *** TODO ***: create a new RTCPeerConnection with this configuration
-  // const pc = ...
+  const pc = new RTCPeerConnection(pcConfiguration);
 
   // *** TODO ***: add all tracks of the local stream to the peerConnection
+  localStream.getTracks().forEach(track => {
+    pc.addTrack(track, localStream);
+  });
 
   return pc;
 }
@@ -128,6 +138,9 @@ function add_peerconnection_handlers(peerConnection) {
   // onicecandidate -> handle_local_icecandidate
   // ontrack -> handle_remote_track
   // ondatachannel -> handle_remote_datachannel
+  peerConnection.onicecandidate = function(event){handle_local_icecandidate(event);}
+  peerConnection.ontrack = function(event){handle_remote_track(event);}
+  peerConnection.ondatachannel = function(event){handle_remote_datachannel(event);}
 }
 
 // ==========================================================================
@@ -142,7 +155,9 @@ async function handle_new_peer(room){
   create_datachannel(peerConnection); // MUST BE CALLED BEFORE createOffer
 
   // *** TODO ***: use createOffer (with await) generate an SDP offer for peerConnection
+  const offer = await peerConnection.createOffer();
   // *** TODO ***: use setLocalDescription (with await) to add the offer to peerConnection
+  await peerConnection.setLocalDescription(offer);
   // *** TODO ***: send an 'invite' message with the offer to the peer.
   socket.emit('invite', offer); 
 }
@@ -153,8 +168,11 @@ async function handle_new_peer(room){
 async function handle_invite(offer) {
   console.log('Received Invite offer from Caller: ', offer);
   // *** TODO ***: use setRemoteDescription (with await) to add the offer SDP to peerConnection 
+  await peerConnection.setRemoteDescription(offer);
   // *** TODO ***: use createAnswer (with await) to generate an answer SDP
+  const answerSDP = await peerConnection.createAnswer();
   // *** TODO ***: use setLocalDescription (with await) to add the answer SDP to peerConnection
+  await peerConnection.setLocalDescription(answerSDP);
   // *** TODO ***: send an 'ok' message with the answer to the peer.
   socket.emit('ok', answer); 
 }
@@ -166,6 +184,7 @@ async function handle_ok(answer) {
   console.log('Received OK answer from Callee: ', answer);
   // *** TODO ***: use setRemoteDescription (with await) to add the answer SDP 
   //               the peerConnection
+  await peerConnection.setRemoteDescription(answer);
 }
 
 // ==========================================================================
