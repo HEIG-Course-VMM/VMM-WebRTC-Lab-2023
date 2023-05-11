@@ -154,7 +154,7 @@ function create_peerconnection(localStream) {
   const pcConfiguration = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]}
 
   //create a new RTCPeerConnection with this configuration
-  const pc = new RTCPeerConnection(pcConfiguration);
+  const pc = new RTCPeerConnection();
 
   //add all tracks of the local stream to the peerConnection
   localStream.getTracks().forEach(track => {
@@ -170,17 +170,17 @@ function create_peerconnection(localStream) {
 // This function is called by the call function all on top of the file.
 function add_peerconnection_handlers(peerConnection) {
 
-  socket.on('onicecandidate', (event) => {
+  peerConnection.onicecandidate = (event) => {
     handle_local_icecandidate(event);
-  });
+  };
 
-  socket.on('ontrack', (event) => {
+  peerConnection.ontrack = (event) => {
     handle_remote_track(event);
-  });
+  };
 
-  socket.on('ondatachannel', (event) => {
+  peerConnection.ondatachannel = (event) => {
     handle_remote_datachannel(event);
-  });
+  };
 }
 
 // ==========================================================================
