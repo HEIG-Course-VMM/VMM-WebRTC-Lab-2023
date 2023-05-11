@@ -52,7 +52,7 @@ def handle_join(room_name):
         # *** TODO ***: Use the SocketIO function join_room to add the user to a SocketIO room.
         join_room(join_room, user_id)
         # *** TODO ***: Use the SocketIO emit function to send a 'created' message back with the room_name as argument
-        emit("created", {"room_name": room_name})
+        emit("created", room_name)
     elif members == 1:
         print(f'Received join from user: {user_id} for EXISTING room: {room_name}.')
         # *** TODO ***: Add the user_id to rooms_db with room_name as value.
@@ -60,13 +60,13 @@ def handle_join(room_name):
         # *** TODO ***: Use join_room to add the user to a SocketIO room.
         join_room(room_name, user_id)
         # *** TODO ***: Emit a 'joined' message back to the client, with the room_name as data.
-        emit("joined", {"room_name": room_name})
+        emit("joined", room_name)
         # *** TODO ***: Broadcast to existing client that there is a new peer
-        emit("new_peer", {"room_name": room_name}, broadcast=True, include_self=False)
+        emit("new_peer", room_name, broadcast=True, include_self=False)
     else:
         print(f'Refusing join from user: {user_id} for FULL room: {room_name}.')
         # *** TODO ***: Emit a 'full' message back to the client, with the room_name as data.
-        emit("full", {"room_name": room_name})
+        emit("full", room_name)
 
 
 def handle_p2pmessage(msg_type, content):
@@ -78,7 +78,7 @@ def handle_p2pmessage(msg_type, content):
 
     # *** TODO ***: Broadcast the message to existing client in the SocketIO room.
     #               Exclude the sender of the orignal message.
-    emit(msg_type, {"content": content}, broadcast=True, include_self=False)
+    emit(msg_type, content, broadcast=True, include_self=False)
 
 
 # *** TODO ***: Create a message handler for 'invite' messages
@@ -104,7 +104,7 @@ def handle_bye(room_name):
     # *** TODO ***: Use leave_room to remove the sender from the SocketIO room
     leave_room(rooms_db[user_id])
     # *** TODO ***: Forward the 'bye' message using p2p_message
-    handle_p2pmessage("bye", {"room_name": room_name})
+    handle_p2pmessage("bye", room_name)
     # *** TODO ***: Remove the user from rooms_db
     rooms_db.pop(user_id)
     pass
