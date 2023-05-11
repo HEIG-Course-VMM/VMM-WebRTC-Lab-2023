@@ -79,7 +79,7 @@ def handle_p2pmessage(msg_type, content):
 
     # *** TODO ***: Broadcast the message to existing client in the SocketIO room.
     #               Exclude the sender of the orignal message.
-    emit(msg_type, content, room_name, boardcast=True, include_self=False)
+    emit(msg_type, content, room_name, broadcast=True, include_self=False)
 
 
 # *** TODO ***: Create a message handler for 'invite' messages
