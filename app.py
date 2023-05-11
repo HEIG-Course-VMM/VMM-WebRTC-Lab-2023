@@ -71,7 +71,7 @@ def handle_join(room_name):
 
 def handle_p2pmessage(msg_type, content):
     # *** TODO ***: Get the user_id from the request variable (see handle_join)
-    user_id = request.id
+    user_id = request.sid
     # *** TODO ***: Get the room_name of the user from rooms_db
     room_name = rooms_db[user_id]
     print(f"Received {msg_type} message: {content} from user: {user_id} in room {room_name}")
@@ -100,7 +100,7 @@ def handle_ice_candidate(content) :
 @socketio.on('bye')
 def handle_bye(room_name):
     # *** TODO ***: Get the user_id from the request variable
-    user_id = request.id
+    user_id = request.sid
     # *** TODO ***: Use leave_room to remove the sender from the SocketIO room
     leave_room(rooms_db[user_id])
     # *** TODO ***: Forward the 'bye' message using p2p_message
