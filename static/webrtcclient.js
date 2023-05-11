@@ -78,7 +78,7 @@ async function enable_camera() {
 // --------------------------------------------------------------------------
 // Create a Socket.io connection with the Web server for signaling
 function create_signaling_connection() {
-  // *** TODO ***: create a socket by simply calling the io() function
+  // create a socket by simply calling the io() function
   //               provided by the socket.io library (included in index.html).
   const socket = io();
   return socket;
@@ -89,7 +89,7 @@ function create_signaling_connection() {
 function add_signaling_handlers(socket) {
   // Event handlers for joining a room. Just print console messages
   // --------------------------------------------------------------
-  // *** TODO ***: use the 'socket.on' method to create handlers for the 
+  // use the 'socket.on' method to create handlers for the 
   //               messages 'created', 'joined', 'full'.
   //               For all three messages, simply write a console log.
   socket.on('created', () => {
@@ -118,14 +118,14 @@ function add_signaling_handlers(socket) {
     handle_remote_icecandidate(candidate);
   });
 
-  socket.on('ice_candidate', () => {
+  socket.on('bye', () => {
     hangUp();
   });
 
 
   // Event handlers for call establishment signaling messages
   // --------------------------------------------------------
-  // *** TODO ***: use the 'socket.on' method to create signaling message handlers:
+  // use the 'socket.on' method to create signaling message handlers:
   // new_peer --> handle_new_peer
   // invite --> handle_invite
   // ok --> handle_ok
@@ -154,10 +154,14 @@ function call_room(socket) {
 function create_peerconnection(localStream) {
   const pcConfiguration = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]}
 
-  // *** TODO ***: create a new RTCPeerConnection with this configuration
-  // const pc = ...
+  //create a new RTCPeerConnection with this configuration
+  const pc = new RTCPeerConnection(pcConfiguration);
 
-  // *** TODO ***: add all tracks of the local stream to the peerConnection
+  //add all tracks of the local stream to the peerConnection
+  localStream.getTracks().forEach(track => {
+    peerConnection.addTrack(track, localStream);
+});
+
 
   return pc;
 }
