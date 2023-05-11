@@ -158,7 +158,7 @@ function create_peerconnection(localStream) {
 
   //add all tracks of the local stream to the peerConnection
   localStream.getTracks().forEach(track => {
-    peerConnection.addTrack(track, localStream);
+    pc.addTrack(track, localStream);
 });
 
 
@@ -194,9 +194,11 @@ async function handle_new_peer(room){
   console.log('Peer has joined room: ' + room + '. I am the Caller.');
   create_datachannel(peerConnection); // MUST BE CALLED BEFORE createOffer
 
-  // *** TODO ***: use createOffer (with await) generate an SDP offer for peerConnection
-  // *** TODO ***: use setLocalDescription (with await) to add the offer to peerConnection
-  // *** TODO ***: send an 'invite' message with the offer to the peer.
+  // use createOffer (with await) generate an SDP offer for peerConnection
+  const offer = await peerConnection.createOffer()
+  // use setLocalDescription (with await) to add the offer to peerConnection
+  await peerConnection.setLocalDescription(offer)
+  // send an 'invite' message with the offer to the peer.
   socket.emit('invite', offer); 
 }
 
@@ -205,10 +207,13 @@ async function handle_new_peer(room){
 // Set remote description and send back an Ok answer.
 async function handle_invite(offer) {
   console.log('Received Invite offer from Caller: ', offer);
-  // *** TODO ***: use setRemoteDescription (with await) to add the offer SDP to peerConnection 
-  // *** TODO ***: use createAnswer (with await) to generate an answer SDP
-  // *** TODO ***: use setLocalDescription (with await) to add the answer SDP to peerConnection
-  // *** TODO ***: send an 'ok' message with the answer to the peer.
+  // use setRemoteDescription (with await) to add the offer SDP to peerConnection 
+  await peerConnection.setRemoteDescription(offer)
+  // use createAnswer (with await) to generate an answer SDP
+  const answer = await peerConnection.createAnswer()
+  // use setLocalDescription (with await) to add the answer SDP to peerConnection
+  await peerConnection.setLocalDescription(answer)
+  // send an 'ok' message with the answer to the peer.
   socket.emit('ok', answer); 
 }
 
@@ -217,8 +222,9 @@ async function handle_invite(offer) {
 // Set remote description.
 async function handle_ok(answer) {
   console.log('Received OK answer from Callee: ', answer);
-  // *** TODO ***: use setRemoteDescription (with await) to add the answer SDP 
+  // use setRemoteDescription (with await) to add the answer SDP 
   //               the peerConnection
+  await peerConnection.setRemoteDescription(answer)
 }
 
 // ==========================================================================
@@ -230,16 +236,19 @@ async function handle_ok(answer) {
 // Send it to the peer via the server.
 async function handle_local_icecandidate(event) {
   console.log('Received local ICE candidate: ', event);
-  // *** TODO ***: check if there is a new ICE candidate.
-  // *** TODO ***: if yes, send a 'ice_candidate' message with the candidate to the peer
+  // check if there is a new ICE candidate.
+  // if yes, send a 'ice_candidate' message with the candidate to the peer
+  if(event.candidate){
+    socket.emit('ice_candidate', event.candidate)
+  }
 }
 
 // --------------------------------------------------------------------------
 // The peer has sent a remote ICE candidate. Add it to the PeerConnection.
 async function handle_remote_icecandidate(candidate) {
   console.log('Received remote ICE candidate: ', candidate);
-  // *** TODO ***: add the received remote ICE candidate to the peerConnection 
-
+  // add the received remote ICE candidate to the peerConnection 
+  peerConnection.addIceCandidate(candidate)
 }
 
 // ==========================================================================
