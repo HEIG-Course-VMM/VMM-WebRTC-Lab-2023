@@ -167,7 +167,8 @@ function add_peerconnection_handlers(peerConnection) {
 async function handle_new_peer(room) {
     console.log("Peer has joined room: " + room + ". I am the Caller.");
     create_datachannel(peerConnection); // MUST BE CALLED BEFORE createOffer
-
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
     // *** TODO ***: use createOffer (with await) generate an SDP offer for peerConnection
     // *** TODO ***: use setLocalDescription (with await) to add the offer to peerConnection
     // *** TODO ***: send an 'invite' message with the offer to the peer.
@@ -180,8 +181,11 @@ async function handle_new_peer(room) {
 async function handle_invite(offer) {
     console.log("Received Invite offer from Caller: ", offer);
     // *** TODO ***: use setRemoteDescription (with await) to add the offer SDP to peerConnection
+    await peerConnection.setRemoteDescription(offer);
     // *** TODO ***: use createAnswer (with await) to generate an answer SDP
+    const answer = await peerConnection.createAnswer();
     // *** TODO ***: use setLocalDescription (with await) to add the answer SDP to peerConnection
+    await peerConnection.setLocalDescription(answer);
     // *** TODO ***: send an 'ok' message with the answer to the peer.
     socket.emit("ok", answer);
 }
@@ -193,6 +197,7 @@ async function handle_ok(answer) {
     console.log("Received OK answer from Callee: ", answer);
     // *** TODO ***: use setRemoteDescription (with await) to add the answer SDP
     //               the peerConnection
+    await peerConnection.setRemoteDescription(answer);
 }
 
 // ==========================================================================
@@ -204,8 +209,10 @@ async function handle_ok(answer) {
 // Send it to the peer via the server.
 async function handle_local_icecandidate(event) {
     console.log("Received local ICE candidate: ", event);
-    // *** TODO ***: check if there is a new ICE candidate.
-    // *** TODO ***: if yes, send a 'ice_candidate' message with the candidate to the peer
+    if (event.candidate) {
+        console.log("Received local ICE candidate: ", event.candidate);
+        socket.emit("ice_candidate", event.candidate);
+    }
 }
 
 // --------------------------------------------------------------------------
@@ -213,6 +220,7 @@ async function handle_local_icecandidate(event) {
 async function handle_remote_icecandidate(candidate) {
     console.log("Received remote ICE candidate: ", candidate);
     // *** TODO ***: add the received remote ICE candidate to the peerConnection
+    peerConnection.addIceCandidate(candidate);
 }
 
 // ==========================================================================
@@ -225,7 +233,7 @@ async function handle_remote_icecandidate(candidate) {
 function handle_remote_track(event) {
     console.log("Received remote track: ", event);
     // *** TODO ***: get the first stream of the event and show it in remoteVideo
-    //document.getElementById('remoteVideo').srcObject = ...
+    document.getElementById("remoteVideo").srcObject = event.streams[0];
 }
 
 // ==========================================================================
@@ -238,10 +246,11 @@ function create_datachannel(peerConnection) {
     console.log("Creating dataChannel. I am the Caller.");
 
     // *** TODO ***: create a dataChannel on the peerConnection
-    //dataChannel = ...
+    dataChannel = peerConnection.createDataChannel("dataChannel");
 
     // *** TODO ***: connect the handlers onopen and onmessage to the handlers below
-    //dataChannel. ...
+    dataChannel.onopen = handle_datachannel_open;
+    dataChannel.onmessage = handle_datachannel_message;
 }
 
 // --------------------------------------------------------------------------
@@ -250,8 +259,9 @@ function handle_remote_datachannel(event) {
     console.log("Received remote dataChannel. I am Callee.");
 
     // *** TODO ***: get the data channel from the event
-
+    dataChannel = event.channel;
     // *** TODO ***: add event handlers for onopen and onmessage events to the dataChannel
+    dataChannel.onopen = handle_datachannel_open;
 }
 
 // --------------------------------------------------------------------------
@@ -269,6 +279,7 @@ function sendMessage() {
     document.getElementById("dataChannelOutput").value += "        ME: " + message + "\n";
 
     // *** TODO ***: send the message through the dataChannel
+    dataChannel.send(message);
 }
 
 // Handle Message from peer event on dataChannel: display the message
@@ -284,20 +295,24 @@ function handle_datachannel_message(event) {
 // HangUp: Send a bye message to peer and close all connections and streams.
 function hangUp() {
     // *** TODO ***: Write a console log
-
+    console.log("Hang up");
     // *** TODO ***: send a bye message with the room name to the server
-
+    socket.emit("bye", room);
     // Switch off the local stream by stopping all tracks of the local stream
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
     // *** TODO ***: remove the tracks from localVideo and remoteVideo
-
+    localVideo.srcObject.getTracks().forEach((track) => track.stop());
+    remoteVideo.srcObject.getTracks().forEach((track) => track.stop());
     // *** TODO ***: set localVideo and remoteVideo source objects to null
-
+    localVideo.srcObject = null;
+    remoteVideo.srcObject = null;
     // *** TODO ***: close the peerConnection and set it to null
-
+    peerConnection.close();
+    peerConnection = null;
     // *** TODO ***: close the dataChannel and set it to null
-
+    dataChannel.close();
+    dataChannel = null;
     document.getElementById("dataChannelOutput").value += "*** Channel is closed ***\n";
 }
 
