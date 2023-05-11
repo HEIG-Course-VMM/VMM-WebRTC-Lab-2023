@@ -171,10 +171,17 @@ function create_peerconnection(localStream) {
 // This function is called by the call function all on top of the file.
 function add_peerconnection_handlers(peerConnection) {
 
-  // *** TODO ***: add event handlers on the peerConnection
-  // onicecandidate -> handle_local_icecandidate
-  // ontrack -> handle_remote_track
-  // ondatachannel -> handle_remote_datachannel
+  socket.on('onicecandidate', (event) => {
+    handle_local_icecandidate(event);
+  });
+
+  socket.on('ontrack', (event) => {
+    handle_remote_track(event);
+  });
+
+  socket.on('ondatachannel', (event) => {
+    handle_remote_datachannel(event);
+  });
 }
 
 // ==========================================================================
