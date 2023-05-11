@@ -240,6 +240,9 @@ async function handle_local_icecandidate(event) {
   // if yes, send a 'ice_candidate' message with the candidate to the peer
   if(event.candidate){
     socket.emit('ice_candidate', event.candidate)
+    console.log(event.candidate)
+  } else {
+    console.log('pas de candidat')
   }
 }
 
@@ -287,9 +290,9 @@ function create_datachannel(peerConnection) {
 }
 
 // --------------------------------------------------------------------------
-// Handle remote data channel from Caller: only used by the Callee.
+// Handle remote data channel from Caller: only used by the Caller.
 function handle_remote_datachannel(event) {
-  console.log('Received remote dataChannel. I am Callee.');
+  console.log('Received remote dataChannel. I am Caller.');
 
   // get the data channel from the event
   dataChannel = event.dataChannel;
@@ -307,7 +310,7 @@ function handle_remote_datachannel(event) {
 
 // --------------------------------------------------------------------------
 // Handle Open event on dataChannel: show a message.
-// Received by the Caller and the Callee.
+// Received by the Caller and the Caller.
 function handle_datachannel_open(event) {
   dataChannel.send('*** Channel is ready ***');
 }

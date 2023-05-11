@@ -84,11 +84,11 @@ def handle_invite(offer):
     handle_p2pmessage('invite', offer)
 
 @socketio.on('ok')
-def handle_invite(answer):
+def handle_ok(answer):
     handle_p2pmessage('ok', answer)
 
 @socketio.on('ice_candidate')
-def handle_invite(candidate):
+def handle_ice_candidate(candidate):
     handle_p2pmessage('ice_candidate', candidate)
 
 
