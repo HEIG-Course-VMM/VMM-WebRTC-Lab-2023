@@ -79,7 +79,7 @@ async function enable_camera() {
 // Create a Socket.io connection with the Web server for signaling
 function create_signaling_connection() {
   // create a socket by simply calling the io() function
-  //               provided by the socket.io library (included in index.html).
+  // provided by the socket.io library (included in index.html).
   const socket = io();
   return socket;
 }
@@ -260,8 +260,8 @@ async function handle_remote_icecandidate(candidate) {
 // Show the remote track video on the web page.
 function handle_remote_track(event) {
   console.log('Received remote track: ', event);
-  // *** TODO ***: get the first stream of the event and show it in remoteVideo
-  //document.getElementById('remoteVideo').srcObject = ...
+  // get the first stream of the event and show it in remoteVideo
+  document.getElementById('remoteVideo').srcObject = event.streams[0]
 }
 
 // ==========================================================================
@@ -273,12 +273,17 @@ function handle_remote_track(event) {
 function create_datachannel(peerConnection) {
   console.log('Creating dataChannel. I am the Caller.');
 
-  // *** TODO ***: create a dataChannel on the peerConnection
-  //dataChannel = ...
+  //  create a dataChannel on the peerConnection
+  dataChannel = peerConnection.createDataChannel("data channel")
 
-  // *** TODO ***: connect the handlers onopen and onmessage to the handlers below
-  //dataChannel. ...
+  // connect the handlers onopen and onmessage to the handlers below
+  dataChannel.onopen = (event) => {
+    handle_datachannel_open(event);
+  }
 
+  dataChannel.onmessage = (event) => {
+    handle_datachannel_message(event);
+  }
 }
 
 // --------------------------------------------------------------------------
@@ -286,9 +291,17 @@ function create_datachannel(peerConnection) {
 function handle_remote_datachannel(event) {
   console.log('Received remote dataChannel. I am Callee.');
 
-  // *** TODO ***: get the data channel from the event
+  // get the data channel from the event
+  dataChannel = event.dataChannel;
 
-  // *** TODO ***: add event handlers for onopen and onmessage events to the dataChannel
+  // add event handlers for onopen and onmessage events to the dataChannel
+  dataChannel.onopen = (event) => {
+    handle_datachannel_open(event);
+  }
+
+  dataChannel.onmessage = (event) => {
+    handle_datachannel_message(event);
+  }
 
 }
 
@@ -306,8 +319,8 @@ function sendMessage() {
   document.getElementById('dataChannelInput').value = '';
   document.getElementById('dataChannelOutput').value += '        ME: ' + message + '\n';
 
-  // *** TODO ***: send the message through the dataChannel
-
+  // send the message through the dataChannel
+  dataChannel.send(message);
 }
 
 // Handle Message from peer event on dataChannel: display the message
@@ -322,20 +335,32 @@ function handle_datachannel_message(event) {
 // --------------------------------------------------------------------------
 // HangUp: Send a bye message to peer and close all connections and streams.
 function hangUp() {
-  // *** TODO ***: Write a console log
+  // Write a console log
+  console.log('bye Bye')
 
-  // *** TODO ***: send a bye message with the room name to the server
+  //send a bye message with the room name to the server
+  socket.emit('bye', room)
 
   // Switch off the local stream by stopping all tracks of the local stream
   const localVideo = document.getElementById('localVideo')
   const remoteVideo = document.getElementById('remoteVideo')
-  // *** TODO ***: remove the tracks from localVideo and remoteVideo
+  // remove the tracks from localVideo and remoteVideo
+  localVideo.srcObject.getTracks().forEach(track => {
+    track.stop()
+  })
+  remoteVideo.srcObject.getTracks().forEach(track => {
+    track.stop()
+  })
+  // set localVideo and remoteVideo source objects to null
+  localVideo.srcObject = null
+  remoteVideo.srcObject = null
+  // close the peerConnection and set it to null
+  peerConnection.close()
+  peerConnection = null
 
-  // *** TODO ***: set localVideo and remoteVideo source objects to null
-
-  // *** TODO ***: close the peerConnection and set it to null
-
-  // *** TODO ***: close the dataChannel and set it to null
+  // close the dataChannel and set it to null
+  dataChannel.close()
+  dataChannel = null
 
   document.getElementById('dataChannelOutput').value += '*** Channel is closed ***\n';
 }
