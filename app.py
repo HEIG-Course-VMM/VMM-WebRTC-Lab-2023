@@ -47,18 +47,25 @@ def handle_join(room_name):
     members = list(rooms_db.values()).count(room_name)
     if members == 0:
         print(f'Received join from user: {user_id} for NEW room: {room_name}.')
-        # *** TODO ***: Add the user_id to the rooms_db dictionary with the room_name as value
-        # *** TODO ***: Use the SocketIO function join_room to add the user to a SocketIO room.
-        # *** TODO ***: Use the SocketIO emit function to send a 'created' message back with the room_name as argument
+        # Add the user_id to the rooms_db dictionary with the room_name as value
+        rooms_db[user_id] = room_name
+        # Use the SocketIO function join_room to add the user to a SocketIO room.
+        join_room(room_name)
+        # Use the SocketIO emit function to send a 'created' message back with the room_name as argument
+        emit('created', room_name)
     elif members == 1:
         print(f'Received join from user: {user_id} for EXISTING room: {room_name}.')
-        # *** TODO ***: Add the user_id to rooms_db with room_name as value.
-        # *** TODO ***: Use join_room to add the user to a SocketIO room.
-        # *** TODO ***: Emit a 'joined' message back to the client, with the room_name as data.
-        # *** TODO ***: Broadcast to existing client that there is a new peer
+
+        rooms_db[user_id] = room_name
+        join_room(room_name)
+        # Emit a 'joined' message back to the client, with the room_name as data.
+        emit('joined', room_name)
+        # Broadcast to existing client that there is a new peer
+        emit('new_peer', room_name, room=room_name, broadcast=True, include_self=False)
     else:
         print(f'Refusing join from user: {user_id} for FULL room: {room_name}.')
-        # *** TODO ***: Emit a 'full' message back to the client, with the room_name as data.
+        # Emit a 'full' message back to the client, with the room_name as data.
+        emit('full', room_name)
 
 
 def handle_p2pmessage(msg_type, content):
