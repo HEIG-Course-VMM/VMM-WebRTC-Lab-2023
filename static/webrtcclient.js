@@ -255,6 +255,7 @@ function handle_remote_datachannel(event) {
     dataChannel = event.channel;
     // *** TODO ***: add event handlers for onopen and onmessage events to the dataChannel
     dataChannel.onopen = handle_datachannel_open;
+    dataChannel.onmessage = handle_datachannel_message;
 }
 
 // --------------------------------------------------------------------------
