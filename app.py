@@ -62,7 +62,7 @@ def handle_join(room_name):
         # *** TODO ***: Emit a 'joined' message back to the client, with the room_name as data.
         emit("joined", {"room_name": room_name})
         # *** TODO ***: Broadcast to existing client that there is a new peer
-        emit("new_peer", {"room": room_name}, broadcast=True, include_self=False)
+        emit("new_peer", {"room_name": room_name}, broadcast=True, include_self=False)
     else:
         print(f'Refusing join from user: {user_id} for FULL room: {room_name}.')
         # *** TODO ***: Emit a 'full' message back to the client, with the room_name as data.
