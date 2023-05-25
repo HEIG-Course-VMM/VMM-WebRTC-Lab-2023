@@ -74,9 +74,6 @@ def handle_p2pmessage(msg_type, content):
     # *** TODO ***: Get the user_id from the request variable (see handle_join)
     user_id = request.sid
     # *** TODO ***: Get the room_name of the user from rooms_db
-    if user_id not in rooms_db:
-        print(f"Room with user_id {user_id} not found in rooms_db. Ignoring message")
-        return
     room_name = rooms_db[user_id]
     print(f"Received {msg_type} message: {content} from user: {user_id} in room {room_name}")
 
