@@ -251,7 +251,7 @@ async function handle_local_icecandidate(event) {
 async function handle_remote_icecandidate(candidate) {
   console.log('Received remote ICE candidate: ', candidate);
   // *** TODO ***: add the received remote ICE candidate to the peerConnection 
-  peerConnection.addIceCandidate(candidate)
+  await peerConnection.addIceCandidate(candidate)
 }
 
 // ==========================================================================
@@ -349,10 +349,10 @@ function hangUp() {
   const localVideo = document.getElementById('localVideo')
   const remoteVideo = document.getElementById('remoteVideo')
   // *** TODO ***: remove the tracks from localVideo and remoteVideo
-  localVideo.srcObject.getTracks().forEach(track => {
+  localVideo.srcObject?.getTracks().forEach(track => {
     track.stop()
   })
-  remoteVideo.srcObject.getTracks().forEach(track => {
+  remoteVideo.srcObject?.getTracks().forEach(track => {
     track.stop()
   })
 
